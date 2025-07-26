@@ -255,6 +255,26 @@ async function run() {
             }
         });
 
+        // GET single campaign
+        app.get("/donation-campaigns/:id", async (req, res) => {
+            const { id } = req.params;
+            const campaign = await donationCollection.findOne({ _id: new ObjectId(id) });
+            res.send(campaign);
+        });
+
+        // PATCH update campaign
+        app.patch("/donation-campaigns/:id", async (req, res) => {
+            const { id } = req.params;
+            const updateData = req.body;
+
+            const result = await donationCollection.updateOne(
+                { _id: new ObjectId(id) },
+                { $set: updateData }
+            );
+            res.send(result);
+        });
+
+
 
 
 
