@@ -38,6 +38,7 @@ async function run() {
         const usersCollection = client.db("petAdoption").collection("users");
         const petsCollection = client.db("petAdoption").collection("pets");
         const donationCollection = client.db("petAdoption").collection("donation");
+        const adoptionCollection = client.db("petAdoption").collection("adoption-Request");
 
         const verifyJWT = (req, res, next) => {
             const authHeader = req?.headers?.authorization;
@@ -100,6 +101,49 @@ async function run() {
 
             res.send({ token });
         });
+
+
+        // get method for get all pets
+        app.get("/all-pets", async (req, res) => {
+            const { search = "", category = "", page = 1 } = req.query;
+            const limit = 10;
+            const skip = (parseInt(page) - 1) * limit;
+
+            const query = {
+                adopted: false,
+                name: { $regex: search, $options: "i" },
+            };
+            if (category) {
+                query.category = category;
+            }
+
+            const pets = await petsCollection
+                .find(query)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .toArray();
+
+            res.send(pets);
+        });
+
+        // GET: Get pet by ID
+        app.get("/pet/:id", async (req, res) => {
+            const id = req.params.id;
+            const pet = await db.collection("pets").findOne({ _id: new ObjectId(id) });
+            res.send(pet);
+        });
+
+
+        // POST: Save adoption request
+        app.post("/adoption-request", async (req, res) => {
+            const adoption = req.body;
+            adoption.createdAt = new Date();
+
+            const result = await adoptionCollection.insertOne(adoption);
+            res.send(result);
+        });
+
 
 
         // post method by user add pet
