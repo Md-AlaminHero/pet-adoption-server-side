@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+// const Stripe = require('stripe');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const jwt = require("jsonwebtoken")
@@ -15,7 +16,7 @@ app.use(express.json());
 
 
 
-
+// const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nrp7gyz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 // const uri = "mongodb+srv://<db_username>:<db_password>@cluster0.nrp7gyz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
@@ -241,6 +242,63 @@ async function run() {
             );
             res.send(result);
         });
+
+
+        // server.js or routes file
+        app.get("/donation-campaigns", async (req, res) => {
+            try {
+                const { page = 1 } = req.query;
+                const limit = 9;
+                const skip = (parseInt(page) - 1) * limit;
+
+                const campaigns = await donationCollection
+                    .find({})
+                    .sort({ createdAt: -1 }) // Sort by date descending
+                    .sort({ lastDate: -1 }) // Sort by date descending
+                    .skip(skip)
+                    .limit(limit)
+                    .toArray();
+
+                res.send(campaigns);
+            } catch (err) {
+                console.error("Error fetching campaigns", err);
+                res.status(500).send({ message: "Internal server error" });
+            }
+        });
+
+        // get donation-campaigns details
+        app.get('/donation-campaigns/:id', async (req, res) => {
+            const camp = await donationCollection.findOne({ _id: new ObjectId(req.params.id) });
+            res.send(camp);
+        });
+
+        // Get recommended campaigns (3 active, excluding current)
+        app.get("/donation-campaigns/recommended/:excludeId", async (req, res) => {
+            try {
+                const excludeId = req.params.excludeId;
+                const campaigns = await donationCollection
+                    .find({ _id: { $ne: new ObjectId(excludeId) }, paused: { $ne: true } })
+                    .sort({ createdAt: -1 })
+                    .limit(3)
+                    .toArray();
+                res.send(campaigns);
+            } catch (error) {
+                res.status(500).send({ message: "Server error" });
+            }
+        });
+
+        // create payment intent
+        // app.post('/create-payment-intent', async (req, res) => {
+        //     const { amount } = req.body;
+        //     const paymentIntent = await stripe.paymentIntents.create({
+        //         amount: Math.round(amount * 100), // in cents
+        //         currency: 'usd',
+        //         automatic_payment_methods: { enabled: true },
+        //     });
+        //     res.json({ clientSecret: paymentIntent.client_secret });
+        // });
+
+
 
         // post by user
         // POST /donation-campaigns
