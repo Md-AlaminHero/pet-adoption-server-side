@@ -93,6 +93,21 @@ async function run() {
             res.send(result);
         });
 
+        // social authentication
+        app.post('/users/social', async (req, res) => {
+            const user = req.body;
+            const existingUser = await usersCollection.findOne({ email: user.email });
+
+            if (!existingUser) {
+                const result = await usersCollection.insertOne(user);
+                return res.send({ inserted: true, insertedId: result.insertedId });
+            } else {
+                return res.send({ inserted: false, message: "User already exists" });
+            }
+        });
+
+        
+
         app.post('/jwt', (req, res) => {
             const { email } = req.body;
 
@@ -389,10 +404,10 @@ async function run() {
 
 
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // await client.db("admin").command({ ping: 1 });
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
