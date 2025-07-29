@@ -6,13 +6,20 @@ const app = express();
 const jwt = require("jsonwebtoken")
 require('dotenv').config();
 const port = process.env.PORT || 3000;
-// const admin = require("firebase-admin");
+const admin = require("firebase-admin");
 
 
 app.use(cors());
 app.use(express.json());
 
 
+
+const decodedKey = Buffer.from(process.env.FB_SERVICE_KEY, 'base64').toString('utf8');
+const serviceAccount = JSON.parse(decodedKey);
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+})
 
 
 
@@ -67,6 +74,11 @@ async function run() {
         };
 
 
+        app.get('/users', async (req, res) => {
+            const users = await usersCollection.find().toArray();
+            res.send(users);
+        });
+
         // POST /users - Save user with default role
         app.post("/users", async (req, res) => {
             const user = req.body;
@@ -106,7 +118,41 @@ async function run() {
             }
         });
 
-        
+
+        app.put('/users/admin/:id', async (req, res) => {
+            const { id } = req.params;
+
+            try {
+                // Step 1: Get existing user by ID
+                const user = await usersCollection.findOne({ _id: new ObjectId(id) });
+
+                if (!user) {
+                    return res.status(404).send({ message: 'User not found' });
+                }
+
+                // Step 2: Decide new role
+                const newRole = user.role === 'admin' ? 'user' : 'admin';
+
+                // Step 3: Update user role
+                const result = await usersCollection.updateOne(
+                    { _id: new ObjectId(id) },
+                    { $set: { role: newRole } }
+                );
+
+                res.send(result);
+            } catch (error) {
+                console.error('Role toggle error:', error);
+                res.status(500).send({ message: 'Failed to toggle role', error });
+            }
+        });
+
+        // GET: Get user by email (to check role)
+        app.get('/users/email/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await usersCollection.findOne({ email });
+            res.send(user || {});
+        });
+
 
         app.post('/jwt', (req, res) => {
             const { email } = req.body;
@@ -254,6 +300,131 @@ async function run() {
             const result = await petsCollection.updateOne(
                 { _id: new ObjectId(id) },
                 { $set: updatedPet }
+            );
+            res.send(result);
+        });
+
+
+        //metheods by admin 
+        // Get all campaigns
+        app.get('/campaigns', async (req, res) => {
+            const campaigns = await donationCollection.find().toArray();
+            res.send(campaigns);
+        });
+
+        // Delete a campaign by ID
+        app.delete('/campaigns/:id', async (req, res) => {
+            const result = await donationCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+            res.send(result);
+        });
+
+        // Update campaign by ID (edit)
+        app.put('/campaigns/:id', async (req, res) => {
+            const updatedData = req.body;
+            const result = await donationCollection.updateOne(
+                { _id: new ObjectId(req.params.id) },
+                { $set: updatedData }
+            );
+            res.send(result);
+        });
+
+        // Pause or unpause campaign status
+        app.patch('/campaigns/status/:id', async (req, res) => {
+            const { status } = req.body; // "active" or "paused"
+            const result = await donationCollection.updateOne(
+                { _id: new ObjectId(req.params.id) },
+                { $set: { status } }
+            );
+            res.send(result);
+        });
+
+
+        // admin role 
+
+        // POST /users - Save user with default role
+        app.post("/users", async (req, res) => {
+            const user = req.body;
+            if (!user || !user.email) {
+                return res.status(400).send({ error: "Invalid user data" });
+            }
+
+            // Optional: Check if user already exists
+            const existing = await usersCollection.findOne({ email: user.email });
+            if (existing) {
+                return res.status(200).send({ message: "User already exists" });
+            }
+
+            // Insert user with default role
+            const newUser = {
+                name: user.name,
+                email: user.email,
+                photoURL: user.photoURL,
+                role: user.role || "user",
+                createdAt: new Date(),
+            };
+
+            const result = await usersCollection.insertOne(newUser);
+            res.send(result);
+        });
+
+        app.post('/jwt', (req, res) => {
+            const { email } = req.body;
+
+            const token = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: '365d'
+            });
+
+            res.send({ token });
+        });
+
+        // ✅ Update pet info
+        app.put('/pets/:id', async (req, res) => {
+            const updatedData = req.body;
+            const result = await petsCollection.updateOne(
+                { _id: new ObjectId(req.params.id) },
+                { $set: updatedData }
+            );
+            res.send(result);
+        });
+
+        // ✅ Toggle pet status (adopted/not adopted)
+        app.patch('/pets/status/:id', async (req, res) => {
+            const { status } = req.body; // "adopted" or "not adopted"
+            const result = await petsCollection.updateOne(
+                { _id: new ObjectId(req.params.id) },
+                { $set: { status } }
+            );
+            res.send(result);
+        });
+
+        // ✅ Get all pets
+        app.get('/pets', async (req, res) => {
+            const result = await petsCollection.find().toArray();
+            res.send(result);
+        });
+
+        // ✅ Delete pet by ID
+        app.delete('/pets/:id', async (req, res) => {
+            const result = await petsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+            res.send(result);
+        });
+
+        // ✅ Update pet info
+        app.put('/pets/:id', async (req, res) => {
+            const updatedData = req.body;
+            const result = await petsCollection.updateOne(
+                { _id: new ObjectId(req.params.id) },
+                { $set: updatedData }
+            );
+            res.send(result);
+        });
+
+        // ✅ Toggle pet status (adopted/not adopted)
+        app.patch('/pets/status/:id', async (req, res) => {
+            const { status } = req.body; // "adopted" or "not adopted"
+            const result = await petsCollection.updateOne(
+                { _id: new ObjectId(req.params.id) },
+                { $set: { status } }
             );
             res.send(result);
         });
