@@ -366,6 +366,11 @@ async function run() {
 
 
         // admin role 
+        // get users
+        app.get('/users', async (req, res) => {
+            const users = await usersCollection.find().toArray();
+            res.send(users);
+        });
 
         // POST /users - Save user with default role
         app.post("/users", async (req, res) => {
