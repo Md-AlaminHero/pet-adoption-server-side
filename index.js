@@ -421,6 +421,12 @@ async function run() {
             res.send(result);
         });
 
+        // ✅ Delete pet by ID
+        app.delete('/pets/:id', async (req, res) => {
+            const result = await petsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+            res.send(result);
+        });
+
 
         // ✅ Toggle pet status (adopted/not adopted)
         app.patch('/pets/status/:id', async (req, res) => {
@@ -434,11 +440,7 @@ async function run() {
 
         
 
-        // ✅ Delete pet by ID
-        app.delete('/pets/:id', async (req, res) => {
-            const result = await petsCollection.deleteOne({ _id: new ObjectId(req.params.id) });
-            res.send(result);
-        });
+        
 
         
 
