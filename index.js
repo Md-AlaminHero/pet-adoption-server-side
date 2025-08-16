@@ -329,7 +329,7 @@ async function run() {
 
             res.send(pets);
         });
-        
+
 
         //metheods by admin 
         // Get all campaigns
@@ -403,6 +403,14 @@ async function run() {
             res.send({ token });
         });
 
+        // update all pet info by admin
+
+        // ✅ Get all pets
+        app.get('/pets', async (req, res) => {
+            const result = await petsCollection.find().toArray();
+            res.send(result);
+        });
+        
         // ✅ Update pet info
         app.put('/pets/:id', async (req, res) => {
             const updatedData = req.body;
@@ -423,11 +431,7 @@ async function run() {
             res.send(result);
         });
 
-        // ✅ Get all pets
-        app.get('/pets', async (req, res) => {
-            const result = await petsCollection.find().toArray();
-            res.send(result);
-        });
+        
 
         // ✅ Delete pet by ID
         app.delete('/pets/:id', async (req, res) => {
