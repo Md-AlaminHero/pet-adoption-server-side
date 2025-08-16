@@ -305,6 +305,32 @@ async function run() {
         });
 
 
+        // admin get all pets for recharts
+        // get method for get all pets
+        app.get("/all-pets", async (req, res) => {
+            const { search = "", category = "", page = 1 } = req.query;
+            const limit = 10;
+            const skip = (parseInt(page) - 1) * limit;
+
+            const query = {
+                adopted: false,
+                name: { $regex: search, $options: "i" },
+            };
+            if (category) {
+                query.category = category;
+            }
+
+            const pets = await petsCollection
+                .find(query)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .toArray();
+
+            res.send(pets);
+        });
+        
+
         //metheods by admin 
         // Get all campaigns
         app.get('/campaigns', async (req, res) => {
@@ -486,7 +512,7 @@ async function run() {
             }
         });
 
-        
+
         app.get("/donation-campaigns/user/:email", async (req, res) => {
             try {
                 const email = decodeURIComponent(req.params.email);
