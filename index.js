@@ -421,15 +421,6 @@ async function run() {
             res.send(result);
         });
 
-        // ✅ Update pet info
-        app.put('/pets/:id', async (req, res) => {
-            const updatedData = req.body;
-            const result = await petsCollection.updateOne(
-                { _id: new ObjectId(req.params.id) },
-                { $set: updatedData }
-            );
-            res.send(result);
-        });
 
         // ✅ Toggle pet status (adopted/not adopted)
         app.patch('/pets/status/:id', async (req, res) => {
