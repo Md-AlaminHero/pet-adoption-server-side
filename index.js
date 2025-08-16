@@ -473,19 +473,6 @@ async function run() {
             }
         });
 
-        // create payment intent
-        // app.post('/create-payment-intent', async (req, res) => {
-        //     const { amount } = req.body;
-        //     const paymentIntent = await stripe.paymentIntents.create({
-        //         amount: Math.round(amount * 100), // in cents
-        //         currency: 'usd',
-        //         automatic_payment_methods: { enabled: true },
-        //     });
-        //     res.json({ clientSecret: paymentIntent.client_secret });
-        // });
-
-
-
         // post by user
         // POST /donation-campaigns
         app.post("/donation-campaigns", async (req, res) => {
@@ -499,33 +486,7 @@ async function run() {
             }
         });
 
-        // Get all donations by a user
-        // app.get("/donation-campaigns/user/:email", async (req, res) => {
-        //     const email = req.params.email;
-
-        //     const campaigns = await donationCollection.find({ requesterEmail: email }).toArray();
-
-        //     res.send(campaigns);
-        // });
-
-        // // Pause/Unpause donation
-        // app.patch('/donations/pause/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     const { paused } = req.body;
-        //     const result = await donationCollection.updateOne(
-        //         { _id: new ObjectId(id) },
-        //         { $set: { paused } }
-        //     );
-        //     res.send(result);
-        // });
-
-        // // Get donators of a donation
-        // app.get('/donations/donators/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     const donation = await donationCollection.findOne({ _id: new ObjectId(id) });
-        //     res.send(donation?.donations || []);
-        // });
-
+        
         app.get("/donation-campaigns/user/:email", async (req, res) => {
             try {
                 const email = decodeURIComponent(req.params.email);
@@ -561,13 +522,6 @@ async function run() {
             );
             res.send(result);
         });
-
-
-
-
-
-
-
 
 
 
