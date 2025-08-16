@@ -438,22 +438,6 @@ async function run() {
             res.send(result);
         });
 
-        
-
-        
-
-        
-
-        // ✅ Toggle pet status (adopted/not adopted)
-        app.patch('/pets/status/:id', async (req, res) => {
-            const { status } = req.body; // "adopted" or "not adopted"
-            const result = await petsCollection.updateOne(
-                { _id: new ObjectId(req.params.id) },
-                { $set: { status } }
-            );
-            res.send(result);
-        });
-
 
         // server.js or routes file
         app.get("/donation-campaigns", async (req, res) => {
